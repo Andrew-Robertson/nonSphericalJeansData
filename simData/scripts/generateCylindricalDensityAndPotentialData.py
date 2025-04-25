@@ -1,5 +1,3 @@
-import astropy
-import time
 import numpy as np
 import os
 import simData.eagleSims as eagle
