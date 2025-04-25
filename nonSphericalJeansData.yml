@@ -1,0 +1,17 @@
+name: gadget
+channels:
+  - defaults
+dependencies:
+  - scikit-image
+  - h5py
+  - pandas
+  - python=3.10
+  - matplotlib
+  - scipy
+  - astropy
+  - numpy
+  - seaborn
+  - tqdm
+  - scikit-learn
+  - jupyterlab
+  - ipython
