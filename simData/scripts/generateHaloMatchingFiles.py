@@ -15,7 +15,7 @@ Nfof=1000 # number of FOF halos to consider from each simulation
 output_dir = './haloMatchingData'
 os.makedirs(output_dir, exist_ok=True)
 
-GrNm1,GrNm2,DeltaLogM,separation, path1, path2 = matching.bijective_match('CDMb','SIDM1b', Mdist=Mdist, pdist=pdist, Nfof=Nfof)
+GrNm1,GrNm2,DeltaLogM,separation, path1, path2 = matching.bijective_match(model1,model2, Mdist=Mdist, pdist=pdist, Nfof=Nfof)
 keep = (DeltaLogM < maxDeltaLogM) * (separation < maxSeparation)
 GalaxyID = np.arange(np.sum(keep))
 fname = os.path.join(output_dir, f"EAGLE_{model1}_{model2}_matching_Mdist{Mdist}.npz")
