@@ -2,6 +2,7 @@
 import simData.read_eagle_files_mpi as read_eagle
 import simData.density as density
 import simData.potential as potential
+import simData.haloShapes as shapes
 import os
 import numpy as np
 import astropy.units as u
@@ -105,4 +106,42 @@ class eagleSim():
                                                 Rmin=properties['Redges'].min(), Rmax=properties['Redges'].max(), Rbins=len(properties['Redges'])-1, Zmax=properties['Zedges'].max(), Zbins=len(properties['Zedges'])-1,
                                                 res_fac=res_fac, smooth_fac=smooth_fac, Boxsize=eagleBoxsize*self.a/self.h, refine_Fac=refine_Fac) # res_fac=300, smooth_fac=1, Boxsize=eagleBoxsize*self.a/self.h, refine_Fac=30)
         # return info
+        return properties
+    
+    def calculate_axisymmetric_shapes_for_GrNm(self, GrNm, rmaxs=np.logspace(-3,0.5,36), shell=True, shell_fac='fill', bootstrap=25):
+        if shell_fac=='fill':
+            shell_fac = np.sqrt(rmaxs[0]/rmaxs[1])
+        # Get the relevant data for this Group Number
+        M200 = self.GROUPm200[GrNm-1]*1e10/self.h # Msun
+        R200 = self.GROUPr200[GrNm-1]* self.a /self. h
+        CoP = self.GROUPpos[GrNm-1]*self.a/self.h
+        L = self.GROUPstarL[GrNm-1] # angular momentum vector of stars
+        zhat = zhat = L/np.linalg.norm(L)
+        # get data for the GroupNumber
+        dm_pos = self.DM_pos[self.DM_group_no==GrNm]*self.a/self.h
+        if "baryons" in simDict[self.model]:
+            gas_pos = self.GAS_pos[self.GAS_group_no==GrNm]*self.a/self.h
+            gas_mass = self.GAS_mass[self.GAS_group_no==GrNm]
+            star_pos = self.STAR_pos[self.STAR_group_no==GrNm]*self.a/self.h
+            star_mass = self.STAR_mass[self.STAR_group_no==GrNm]
+            bh_pos = self.BH_pos[self.BH_group_no==GrNm]*self.a/self.h
+            bh_mass = self.BH_mass[self.BH_group_no==GrNm]
+        # make dictionary of quantitites for this halo, we will add the shape data to this
+        properties = {'M200':M200, 'r200':R200, 'L':L, 'pos':self.GROUPpos[GrNm-1], 'rmax':rmaxs, 'shellFac':shell_fac}
+        # shape profiles
+        properties['dm_Q'], properties['dm_N']= shapes.shape_axisymmetric_with_radius(dm_pos, rs=rmaxs, centre=CoP, zvec=zhat, mass=None, print_outputs=False, shell=shell, shell_fac=shell_fac)
+        if "baryons" in simDict[self.model]:
+            properties['star_Q'], properties['star_N']= shapes.shape_axisymmetric_with_radius(star_pos, rs=rmaxs, centre=CoP, zvec=zhat, mass=star_mass, print_outputs=False, shell=shell, shell_fac=shell_fac)
+            properties['gas_Q'], properties['gas_N']= shapes.shape_axisymmetric_with_radius(gas_pos, rs=rmaxs, centre=CoP, zvec=zhat, mass=gas_mass, print_outputs=False, shell=shell, shell_fac=shell_fac)
+        if bootstrap is not None: # bootstrap DM shapes
+            N = dm_pos.shape[0]
+            # bootstrap resample: sample N indices with replacement
+            Nboot = bootstrap
+            dm_Q_array = np.zeros((Nboot, len(rmaxs)))
+            dm_N_array = np.zeros((Nboot, len(rmaxs)))
+            for i in np.arange(Nboot):
+                indices = np.random.choice(N, size=N, replace=True)
+                resampled_dm_pos = dm_pos[indices]
+                dm_Q_array[i], dm_N_array[i]= shapes.shape_axisymmetric_with_radius(resampled_dm_pos, rs=rmaxs, centre=CoP, zvec=zhat, mass=None, print_outputs=False, shell=shell, shell_fac=shell_fac)
+            properties['dm_Q_error'] = np.std(dm_Q_array,axis=0)
         return properties
