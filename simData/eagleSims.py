@@ -145,3 +145,28 @@ class eagleSim():
                 dm_Q_array[i], dm_N_array[i]= shapes.shape_axisymmetric_with_radius(resampled_dm_pos, rs=rmaxs, centre=CoP, zvec=zhat, mass=None, print_outputs=False, shell=shell, shell_fac=shell_fac)
             properties['dm_Q_error'] = np.std(dm_Q_array,axis=0)
         return properties
+    
+    def calculate_density_profiles_for_GrNm(self, GrNm):
+        # Get the relevant data for this Group Number
+        M200 = self.GROUPm200[GrNm-1]*1e10/self.h # Msun
+        R200 = self.GROUPr200[GrNm-1]* self.a /self. h
+        CoP = self.GROUPpos[GrNm-1]*self.a/self.h
+        # get data for the GroupNumber
+        dm_pos = self.DM_pos[self.DM_group_no==GrNm]*self.a/self.h
+        dm_mass = np.ones(len(dm_pos))*self.DM_mass
+        if "baryons" in simDict[self.model]:
+            gas_pos = self.GAS_pos[self.GAS_group_no==GrNm]*self.a/self.h
+            gas_mass = self.GAS_mass[self.GAS_group_no==GrNm]
+            star_pos = self.STAR_pos[self.STAR_group_no==GrNm]*self.a/self.h
+            star_mass = self.STAR_mass[self.STAR_group_no==GrNm]
+            bh_pos = self.BH_pos[self.BH_group_no==GrNm]*self.a/self.h
+            bh_mass = self.BH_mass[self.BH_group_no==GrNm]
+        # make dictionary of quantitites for this halo, we will add the density profile data to this
+        properties = {'M200':M200, 'r200':R200, 'pos':self.GROUPpos[GrNm-1]}
+        # density profiles
+        properties['rs'], properties['dm_rho'], properties['redges'], properties['dm_M'], r200, properties['dm_M_r200'] = density.density_profile(dm_pos, dm_mass, centre=CoP, r200=R200)
+        if "baryons" in simDict[self.model]:
+            rs, properties['star_rho'], redges, properties['star_M'], r200, properties['star_M_r200'] = density.density_profile(star_pos, star_mass, centre=CoP, r200=R200)
+            rs, properties['gas_rho'], redges, properties['gas_M'], r200, properties['gas_M_r200'] = density.density_profile(gas_pos, gas_mass, centre=CoP, r200=R200)
+            rs, properties['bh_rho'], redges, properties['bh_M'], r200, properties['bh_M_r200'] = density.density_profile(bh_pos, bh_mass, centre=CoP, r200=R200)
+        return properties
