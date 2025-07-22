@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
 
-def density_profile(pos, mass, centre=[0, 0, 0], rmin=1e-4, rmax=2, bins=100, r200=None, Boxsize=50):
+def density_profile(pos, mass, centre=[0, 0, 0], rmin=1e-4, rmax=4, bins=100, r200=None, Boxsize=50):
     """
     Compute spherical density profile and enclosed mass from particle data.
 
@@ -11,7 +11,7 @@ def density_profile(pos, mass, centre=[0, 0, 0], rmin=1e-4, rmax=2, bins=100, r2
     - centre: 3-element list for center of profile.
     - rmin, rmax: Min and max radius for profile.
     - bins: Number of radial bins.
-    - r200: Optional radius for computing m200.
+    - r200: Optional radius for computing the masses enclosed within r200.
 
     Returns:
     - rs: Radius at bin centers.
@@ -36,7 +36,7 @@ def density_profile(pos, mass, centre=[0, 0, 0], rmin=1e-4, rmax=2, bins=100, r2
     if r200 is None:
         return rs, rho, redges, mass_within_radii
     else:
-        m200 = np.sum(mass[r < r200])
+        m200 = np.sum(mass[r < r200]) # this is the mass enclosed within r200 of the particles in question (so will not be M200 if, for example, we are only looking at the star particles)
         return rs, rho, redges, mass_within_radii, r200, m200
 
 def cylindrical_density_profile(pos,mass,centre=[0,0,0],zvec=[0,0,1],Rmin=0,Rmax=0.1,Rbins=100,Zmax=0.1,Zbins=200, Boxsize=50):
