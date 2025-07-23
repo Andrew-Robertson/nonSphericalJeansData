@@ -34,6 +34,7 @@ python simData/scripts/generateHaloMatchingFiles.py CDMb SIDM1b
 python simData/scripts/generateHaloMatchingFiles.py CDMb vdSIDMb
 python simData/scripts/generateHaloMatchingFiles.py SIDM1b vdSIDMb
 ```
+and can be found in the `simData/haloMatchingData` directory.
 
 Note that not all haloes can be succesfully matched (the matching is done with a strict "bijective" criteria, and can fail when - for example - two halos are just about to merge in one simulation but have already merged in another). Our matching algorithm should have high purity, at the cost of potentially missing halos that could reasonably be matched. The fact that not all halos have matches means that one can't easily match across more than two simulations, and that the `GalaxyID` associated with a particular pair of `CDMb-SIDM1b` matched halos will not necessarily be the same as the `GalaxyID` of "the same" halo matched between `CDMb` and `vdSIDMb`.
 
